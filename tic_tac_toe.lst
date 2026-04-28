@@ -1,0 +1,1749 @@
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 1
+
+
+
+
+
+       MCS-51 Family Macro Assembler   A S E M - 5 1   V 1.3
+       =====================================================
+
+
+
+	Source File:	E:\Study Materials\Seventh Semester\Course Materials\1. Theory Courses\EEE 4705\CEP\tic_tac_toe.asm
+	Object File:	E:\Study Materials\Seventh Semester\Course Materials\1. Theory Courses\EEE 4705\CEP\tic_tac_toe.hex
+	List File:	E:\Study Materials\Seventh Semester\Course Materials\1. Theory Courses\EEE 4705\CEP\tic_tac_toe.lst
+
+
+
+ Line  I  Addr  Code            Source
+
+    1:		N      0000	ORG 0000H
+    2:	  0000	02 00 03	        LJMP START
+    3:
+    4:		B      00A0	RS        EQU P2.0
+    5:		B      00A2	E         EQU P2.2
+    6:		D      00B0	LCDPORT   EQU P3
+    7:
+    8:		N      0080	LCD_LINE1 EQU 080H
+    9:		N      00C0	LCD_LINE2 EQU 0C0H
+   10:		N      0094	LCD_LINE3 EQU 094H
+   11:		N      00D4	LCD_LINE4 EQU 0D4H
+   12:
+   13:		N      0030	C1      EQU 30H
+   14:		N      0031	C2      EQU 31H
+   15:		N      0032	C3      EQU 32H
+   16:		N      0033	C4      EQU 33H
+   17:		N      0034	C5      EQU 34H
+   18:		N      0035	C6      EQU 35H
+   19:		N      0036	C7      EQU 36H
+   20:		N      0037	C8      EQU 37H
+   21:		N      0038	C9      EQU 38H
+   22:
+   23:		N      0039	CURP    EQU 39H
+   24:		N      003A	MODEF   EQU 3AH
+   25:		N      003B	WINNER  EQU 3BH
+   26:
+   27:				;========================
+   28:				; START
+   29:				;========================
+   30:	  0003			START:
+   31:	  0003	75 90 FF	        MOV P1,#0FFH
+   32:	  0006	12 06 CA	        LCALL DELAY_BIG
+   33:	  0009	12 06 CA	        LCALL DELAY_BIG
+   34:	  000C	12 05 C1	        LCALL LCD_INIT
+   35:
+   36:	  000F			MAIN_MENU:
+   37:	  000F	12 04 1D	        LCALL CLEAR_BOARD
+   38:	  0012	75 3B 00	        MOV WINNER,#00H
+   39:
+   40:	  0015	74 01		        MOV A,#01H
+   41:	  0017	12 05 DB	        LCALL LCD_CMD
+   42:
+   43:	  001A	74 80		        MOV A,#LCD_LINE1
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 2
+
+
+
+ Line  I  Addr  Code            Source
+
+   44:	  001C	12 05 DB	        LCALL LCD_CMD
+   45:	  001F	90 06 D2	        MOV DPTR,#MSG_TITLE
+   46:	  0022	12 05 F9	        LCALL LCD_PRINT
+   47:
+   48:	  0025	74 C0		        MOV A,#LCD_LINE2
+   49:	  0027	12 05 DB	        LCALL LCD_CMD
+   50:	  002A	90 06 E7	        MOV DPTR,#MSG1
+   51:	  002D	12 05 F9	        LCALL LCD_PRINT
+   52:
+   53:	  0030	74 94		        MOV A,#LCD_LINE3
+   54:	  0032	12 05 DB	        LCALL LCD_CMD
+   55:	  0035	90 06 FC	        MOV DPTR,#MSG2
+   56:	  0038	12 05 F9	        LCALL LCD_PRINT
+   57:
+   58:	  003B	74 D4		        MOV A,#LCD_LINE4
+   59:	  003D	12 05 DB	        LCALL LCD_CMD
+   60:	  0040	90 07 11	        MOV DPTR,#MSG_SEL
+   61:	  0043	12 05 F9	        LCALL LCD_PRINT
+   62:
+   63:	  0046			WAIT_MODE:
+   64:	  0046	12 06 05	        LCALL KEY_SCAN
+   65:	  0049	60 FB		        JZ WAIT_MODE
+   66:
+   67:	  004B	B4 31 06	        CJNE A,#'1',CHK_AI
+   68:	  004E	75 3A 00	        MOV MODEF,#00H
+   69:	  0051	02 00 5D	        LJMP START_GAME
+   70:
+   71:	  0054			CHK_AI:
+   72:	  0054	B4 32 EF	        CJNE A,#'2',WAIT_MODE
+   73:	  0057	75 3A 01	        MOV MODEF,#01H
+   74:	  005A	02 00 5D	        LJMP START_GAME
+   75:
+   76:				;========================
+   77:				; START GAME
+   78:				;========================
+   79:	  005D			START_GAME:
+   80:	  005D	75 39 01	        MOV CURP,#01H
+   81:	  0060	75 3B 00	        MOV WINNER,#00H
+   82:	  0063	12 04 27	        LCALL RENDER_BOARD
+   83:
+   84:	  0066			GAME_LOOP:
+   85:	  0066	E5 3B		        MOV A,WINNER
+   86:	  0068	70 72		        JNZ GAME_OVER
+   87:
+   88:	  006A	E5 3A		        MOV A,MODEF
+   89:	  006C	60 2C		        JZ HUMAN_TURN
+   90:	  006E	E5 39		        MOV A,CURP
+   91:	  0070	B4 02 27	        CJNE A,#02H,HUMAN_TURN
+   92:
+   93:	  0073			AI_TURN:
+   94:	  0073	12 01 88	        LCALL AI_MOVE
+   95:	  0076	12 05 51	        LCALL CHECK_WIN
+   96:	  0079	F5 3B		        MOV WINNER,A
+   97:	  007B	E5 3B		        MOV A,WINNER
+   98:	  007D	70 15		        JNZ AI_SHOW_END
+   99:
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 3
+
+
+
+ Line  I  Addr  Code            Source
+
+  100:	  007F	12 05 41	        LCALL CHECK_DRAW
+  101:	  0082	B4 01 06	        CJNE A,#01H,AI_SET_X
+  102:	  0085	75 3B 03	        MOV WINNER,#03H
+  103:	  0088	02 00 94	        LJMP AI_SHOW_END
+  104:
+  105:	  008B			AI_SET_X:
+  106:	  008B	75 39 01	        MOV CURP,#01H
+  107:	  008E	12 04 27	        LCALL RENDER_BOARD
+  108:	  0091	02 00 66	        LJMP GAME_LOOP
+  109:
+  110:	  0094			AI_SHOW_END:
+  111:	  0094	12 04 27	        LCALL RENDER_BOARD
+  112:	  0097	02 00 66	        LJMP GAME_LOOP
+  113:
+  114:				;========================
+  115:				; HUMAN TURN
+  116:				;========================
+  117:	  009A			HUMAN_TURN:
+  118:	  009A			WAIT_KEY:
+  119:	  009A	12 06 05	        LCALL KEY_SCAN
+  120:	  009D	60 FB		        JZ WAIT_KEY
+  121:
+  122:	  009F	B4 43 03	        CJNE A,#'C',NOT_RESTART
+  123:	  00A2	02 00 0F	        LJMP MAIN_MENU
+  124:
+  125:	  00A5			NOT_RESTART:
+  126:	  00A5	12 01 32	        LCALL HANDLE_KEY
+  127:	  00A8	50 F0		        JNC WAIT_KEY
+  128:
+  129:	  00AA	12 05 51	        LCALL CHECK_WIN
+  130:	  00AD	F5 3B		        MOV WINNER,A
+  131:	  00AF	E5 3B		        MOV A,WINNER
+  132:	  00B1	70 23		        JNZ SHOW_END_BOARD
+  133:
+  134:	  00B3	12 05 41	        LCALL CHECK_DRAW
+  135:	  00B6	B4 01 06	        CJNE A,#01H,TOGGLE_PLAYER
+  136:	  00B9	75 3B 03	        MOV WINNER,#03H
+  137:	  00BC	02 00 D6	        LJMP SHOW_END_BOARD
+  138:
+  139:	  00BF			TOGGLE_PLAYER:
+  140:	  00BF	E5 39		        MOV A,CURP
+  141:	  00C1	B4 01 09	        CJNE A,#01H,SET_X
+  142:	  00C4	75 39 02	        MOV CURP,#02H
+  143:	  00C7	12 04 27	        LCALL RENDER_BOARD
+  144:	  00CA	02 00 66	        LJMP GAME_LOOP
+  145:
+  146:	  00CD			SET_X:
+  147:	  00CD	75 39 01	        MOV CURP,#01H
+  148:	  00D0	12 04 27	        LCALL RENDER_BOARD
+  149:	  00D3	02 00 66	        LJMP GAME_LOOP
+  150:
+  151:	  00D6			SHOW_END_BOARD:
+  152:	  00D6	12 04 27	        LCALL RENDER_BOARD
+  153:	  00D9	02 00 66	        LJMP GAME_LOOP
+  154:
+  155:				;========================
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 4
+
+
+
+ Line  I  Addr  Code            Source
+
+  156:				; GAME OVER
+  157:				;========================
+  158:	  00DC			GAME_OVER:
+  159:	  00DC	74 01		        MOV A,#01H
+  160:	  00DE	12 05 DB	        LCALL LCD_CMD
+  161:
+  162:	  00E1	74 80		        MOV A,#LCD_LINE1
+  163:	  00E3	12 05 DB	        LCALL LCD_CMD
+  164:	  00E6	90 07 50	        MOV DPTR,#MSG_GOVER
+  165:	  00E9	12 05 F9	        LCALL LCD_PRINT
+  166:
+  167:	  00EC	74 C0		        MOV A,#LCD_LINE2
+  168:	  00EE	12 05 DB	        LCALL LCD_CMD
+  169:	  00F1	E5 3B		        MOV A,WINNER
+  170:	  00F3	B4 01 09	        CJNE A,#01H,GO_CHK_O
+  171:	  00F6	90 07 65	        MOV DPTR,#MSG_XWIN
+  172:	  00F9	12 05 F9	        LCALL LCD_PRINT
+  173:	  00FC	02 01 11	        LJMP GO_RST
+  174:
+  175:	  00FF			GO_CHK_O:
+  176:	  00FF	B4 02 09	        CJNE A,#02H,GO_DRAW
+  177:	  0102	90 07 7A	        MOV DPTR,#MSG_OWIN
+  178:	  0105	12 05 F9	        LCALL LCD_PRINT
+  179:	  0108	02 01 11	        LJMP GO_RST
+  180:
+  181:	  010B			GO_DRAW:
+  182:	  010B	90 07 8F	        MOV DPTR,#MSG_DRAW
+  183:	  010E	12 05 F9	        LCALL LCD_PRINT
+  184:
+  185:	  0111			GO_RST:
+  186:	  0111	74 94		        MOV A,#LCD_LINE3
+  187:	  0113	12 05 DB	        LCALL LCD_CMD
+  188:	  0116	90 07 A4	        MOV DPTR,#MSG_RST
+  189:	  0119	12 05 F9	        LCALL LCD_PRINT
+  190:
+  191:	  011C	74 D4		        MOV A,#LCD_LINE4
+  192:	  011E	12 05 DB	        LCALL LCD_CMD
+  193:	  0121	90 07 B9	        MOV DPTR,#MSG_BLANK
+  194:	  0124	12 05 F9	        LCALL LCD_PRINT
+  195:
+  196:	  0127			WAIT_RST:
+  197:	  0127	12 06 05	        LCALL KEY_SCAN
+  198:	  012A	60 FB		        JZ WAIT_RST
+  199:	  012C	B4 43 F8	        CJNE A,#'C',WAIT_RST
+  200:	  012F	02 00 0F	        LJMP MAIN_MENU
+  201:
+  202:				;========================
+  203:				; HANDLE KEY
+  204:				;========================
+  205:	  0132			HANDLE_KEY:
+  206:	  0132	C3		        CLR C
+  207:	  0133	B4 31 05	        CJNE A,#'1',HK2
+  208:	  0136	78 30		        MOV R0,#C1
+  209:	  0138	02 01 7C	        LJMP TRY_PLACE
+  210:	  013B	B4 32 05	HK2:    CJNE A,#'2',HK3
+  211:	  013E	78 31		        MOV R0,#C2
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 5
+
+
+
+ Line  I  Addr  Code            Source
+
+  212:	  0140	02 01 7C	        LJMP TRY_PLACE
+  213:	  0143	B4 33 05	HK3:    CJNE A,#'3',HK4
+  214:	  0146	78 32		        MOV R0,#C3
+  215:	  0148	02 01 7C	        LJMP TRY_PLACE
+  216:	  014B	B4 34 05	HK4:    CJNE A,#'4',HK5
+  217:	  014E	78 33		        MOV R0,#C4
+  218:	  0150	02 01 7C	        LJMP TRY_PLACE
+  219:	  0153	B4 35 05	HK5:    CJNE A,#'5',HK6
+  220:	  0156	78 34		        MOV R0,#C5
+  221:	  0158	02 01 7C	        LJMP TRY_PLACE
+  222:	  015B	B4 36 05	HK6:    CJNE A,#'6',HK7
+  223:	  015E	78 35		        MOV R0,#C6
+  224:	  0160	02 01 7C	        LJMP TRY_PLACE
+  225:	  0163	B4 37 05	HK7:    CJNE A,#'7',HK8
+  226:	  0166	78 36		        MOV R0,#C7
+  227:	  0168	02 01 7C	        LJMP TRY_PLACE
+  228:	  016B	B4 38 05	HK8:    CJNE A,#'8',HK9
+  229:	  016E	78 37		        MOV R0,#C8
+  230:	  0170	02 01 7C	        LJMP TRY_PLACE
+  231:	  0173	B4 39 05	HK9:    CJNE A,#'9',HK_BAD
+  232:	  0176	78 38		        MOV R0,#C9
+  233:	  0178	02 01 7C	        LJMP TRY_PLACE
+  234:	  017B	22		HK_BAD: RET
+  235:
+  236:	  017C			TRY_PLACE:
+  237:	  017C	E6		        MOV A,@R0
+  238:	  017D	60 04		        JZ DO_PLACE
+  239:	  017F	12 05 AC	        LCALL SHOW_INVALID
+  240:	  0182	22		        RET
+  241:
+  242:	  0183			DO_PLACE:
+  243:	  0183	E5 39		        MOV A,CURP
+  244:	  0185	F6		        MOV @R0,A
+  245:	  0186	D3		        SETB C
+  246:	  0187	22		        RET
+  247:
+  248:				;========================
+  249:				; AI MOVE - Priority based strategy:
+  250:				; 1. Win  : complete own line of 2
+  251:				; 2. Block: stop X from winning
+  252:				; 3. Fork : create 2 ways to win
+  253:				; 4. Block fork: stop X creating 2 ways
+  254:				; 5. Center
+  255:				; 6. Opposite corner of X
+  256:				; 7. Any corner
+  257:				; 8. Any edge
+  258:				;========================
+  259:	  0188			AI_MOVE:
+  260:				        ; --- Priority 1: Win immediately ---
+  261:	  0188	12 01 F8	        LCALL FIND_WIN_O
+  262:	  018B	40 65		        JC AI_DONE
+  263:
+  264:				        ; --- Priority 2: Block X from winning ---
+  265:	  018D	12 02 24	        LCALL FIND_BLOCK_X
+  266:	  0190	40 60		        JC AI_DONE
+  267:
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 6
+
+
+
+ Line  I  Addr  Code            Source
+
+  268:				        ; --- Priority 3: Create a fork (two ways to win) ---
+  269:	  0192	12 02 50	        LCALL FIND_FORK_O
+  270:	  0195	40 5B		        JC AI_DONE
+  271:
+  272:				        ; --- Priority 4: Block X fork ---
+  273:	  0197	12 02 75	        LCALL FIND_FORK_X
+  274:	  019A	40 56		        JC AI_DONE
+  275:
+  276:				        ; --- Priority 5: Take center ---
+  277:	  019C	78 34		        MOV R0,#C5
+  278:	  019E	E6		        MOV A,@R0
+  279:	  019F	60 51		        JZ AI_DONE
+  280:
+  281:				        ; --- Priority 6: Opposite corner of X ---
+  282:				        ; If X is at C1, take C9 and vice versa
+  283:	  01A1	E5 30		        MOV A,C1
+  284:	  01A3	B4 01 05	        CJNE A,#01H,AI_OPP2
+  285:	  01A6	78 38		        MOV R0,#C9
+  286:	  01A8	E6		        MOV A,@R0
+  287:	  01A9	60 47		        JZ AI_DONE
+  288:	  01AB			AI_OPP2:
+  289:	  01AB	E5 38		        MOV A,C9
+  290:	  01AD	B4 01 05	        CJNE A,#01H,AI_OPP3
+  291:	  01B0	78 30		        MOV R0,#C1
+  292:	  01B2	E6		        MOV A,@R0
+  293:	  01B3	60 3D		        JZ AI_DONE
+  294:	  01B5			AI_OPP3:
+  295:	  01B5	E5 32		        MOV A,C3
+  296:	  01B7	B4 01 05	        CJNE A,#01H,AI_OPP4
+  297:	  01BA	78 36		        MOV R0,#C7
+  298:	  01BC	E6		        MOV A,@R0
+  299:	  01BD	60 33		        JZ AI_DONE
+  300:	  01BF			AI_OPP4:
+  301:	  01BF	E5 36		        MOV A,C7
+  302:	  01C1	B4 01 05	        CJNE A,#01H,AI_CORNER
+  303:	  01C4	78 32		        MOV R0,#C3
+  304:	  01C6	E6		        MOV A,@R0
+  305:	  01C7	60 29		        JZ AI_DONE
+  306:
+  307:				        ; --- Priority 7: Any empty corner ---
+  308:	  01C9			AI_CORNER:
+  309:	  01C9	78 30		        MOV R0,#C1
+  310:	  01CB	E6		        MOV A,@R0
+  311:	  01CC	60 24		        JZ AI_DONE
+  312:	  01CE	78 32		        MOV R0,#C3
+  313:	  01D0	E6		        MOV A,@R0
+  314:	  01D1	60 1F		        JZ AI_DONE
+  315:	  01D3	78 36		        MOV R0,#C7
+  316:	  01D5	E6		        MOV A,@R0
+  317:	  01D6	60 1A		        JZ AI_DONE
+  318:	  01D8	78 38		        MOV R0,#C9
+  319:	  01DA	E6		        MOV A,@R0
+  320:	  01DB	60 15		        JZ AI_DONE
+  321:
+  322:				        ; --- Priority 8: Any empty edge ---
+  323:	  01DD	78 31		        MOV R0,#C2
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 7
+
+
+
+ Line  I  Addr  Code            Source
+
+  324:	  01DF	E6		        MOV A,@R0
+  325:	  01E0	60 10		        JZ AI_DONE
+  326:	  01E2	78 33		        MOV R0,#C4
+  327:	  01E4	E6		        MOV A,@R0
+  328:	  01E5	60 0B		        JZ AI_DONE
+  329:	  01E7	78 35		        MOV R0,#C6
+  330:	  01E9	E6		        MOV A,@R0
+  331:	  01EA	60 06		        JZ AI_DONE
+  332:	  01EC	78 37		        MOV R0,#C8
+  333:	  01EE	E6		        MOV A,@R0
+  334:	  01EF	60 01		        JZ AI_DONE
+  335:	  01F1	22		        RET
+  336:
+  337:	  01F2			AI_DONE:
+  338:	  01F2	76 02		        MOV @R0,#02H
+  339:	  01F4	12 06 CA	        LCALL DELAY_BIG
+  340:	  01F7	22		        RET
+  341:
+  342:				;========================
+  343:				; FIND WIN FOR O (player=2)
+  344:				;========================
+  345:	  01F8			FIND_WIN_O:
+  346:	  01F8	C3		        CLR C
+  347:	  01F9	79 02		        MOV R1,#02H
+  348:	  01FB	89 2F		        MOV 2FH,R1
+  349:	  01FD	12 03 9E	        LCALL TRY_ROW1
+  350:	  0200	40 21		        JC FWO_RET
+  351:	  0202	12 03 A6	        LCALL TRY_ROW2
+  352:	  0205	40 1C		        JC FWO_RET
+  353:	  0207	12 03 AE	        LCALL TRY_ROW3
+  354:	  020A	40 17		        JC FWO_RET
+  355:	  020C	12 03 B6	        LCALL TRY_COL1
+  356:	  020F	40 12		        JC FWO_RET
+  357:	  0211	12 03 BE	        LCALL TRY_COL2
+  358:	  0214	40 0D		        JC FWO_RET
+  359:	  0216	12 03 C6	        LCALL TRY_COL3
+  360:	  0219	40 08		        JC FWO_RET
+  361:	  021B	12 03 CE	        LCALL TRY_DIA1
+  362:	  021E	40 03		        JC FWO_RET
+  363:	  0220	12 03 D6	        LCALL TRY_DIA2
+  364:	  0223			FWO_RET:
+  365:	  0223	22		        RET
+  366:
+  367:				;========================
+  368:				; FIND BLOCK FOR X (player=1)
+  369:				;========================
+  370:	  0224			FIND_BLOCK_X:
+  371:	  0224	C3		        CLR C
+  372:	  0225	79 01		        MOV R1,#01H
+  373:	  0227	89 2F		        MOV 2FH,R1
+  374:	  0229	12 03 9E	        LCALL TRY_ROW1
+  375:	  022C	40 21		        JC FBX_RET
+  376:	  022E	12 03 A6	        LCALL TRY_ROW2
+  377:	  0231	40 1C		        JC FBX_RET
+  378:	  0233	12 03 AE	        LCALL TRY_ROW3
+  379:	  0236	40 17		        JC FBX_RET
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 8
+
+
+
+ Line  I  Addr  Code            Source
+
+  380:	  0238	12 03 B6	        LCALL TRY_COL1
+  381:	  023B	40 12		        JC FBX_RET
+  382:	  023D	12 03 BE	        LCALL TRY_COL2
+  383:	  0240	40 0D		        JC FBX_RET
+  384:	  0242	12 03 C6	        LCALL TRY_COL3
+  385:	  0245	40 08		        JC FBX_RET
+  386:	  0247	12 03 CE	        LCALL TRY_DIA1
+  387:	  024A	40 03		        JC FBX_RET
+  388:	  024C	12 03 D6	        LCALL TRY_DIA2
+  389:	  024F			FBX_RET:
+  390:	  024F	22		        RET
+  391:
+  392:				;========================
+  393:				; FIND FORK FOR O
+  394:				; A fork = a cell where placing O creates
+  395:				; TWO different lines each having 1 O and 2 empty
+  396:				; We test each empty cell: place O, count threats, undo
+  397:				; Use RAM 2EH as temp cell address, 2DH as threat counter
+  398:				;========================
+  399:	  0250			FIND_FORK_O:
+  400:	  0250	C3		        CLR C
+  401:	  0251	78 30		        MOV R0,#C1
+  402:	  0253			FF_O_LOOP:
+  403:	  0253	E6		        MOV A,@R0
+  404:	  0254	70 16		        JNZ FF_O_NEXT
+  405:				        ; cell is empty - temporarily place O
+  406:	  0256	76 02		        MOV @R0,#02H
+  407:	  0258	88 2E		        MOV 2EH,R0
+  408:	  025A	12 02 9A	        LCALL COUNT_O_THREATS
+  409:				        ; restore cell
+  410:	  025D	A8 2E		        MOV R0,2EH
+  411:	  025F	76 00		        MOV @R0,#00H
+  412:				        ; if threats >= 2 this is a fork cell
+  413:	  0261	E5 2D		        MOV A,2DH
+  414:	  0263	B4 02 04	        CJNE A,#02H,FF_O_LT2
+  415:				        ; found fork - set R0 to this cell
+  416:	  0266	A8 2E		        MOV R0,2EH
+  417:	  0268	D3		        SETB C
+  418:	  0269	22		        RET
+  419:	  026A			FF_O_LT2:
+  420:	  026A	A8 2E		        MOV R0,2EH
+  421:	  026C			FF_O_NEXT:
+  422:	  026C	E8		        MOV A,R0
+  423:	  026D	B4 38 02	        CJNE A,#C9,FF_O_INC
+  424:	  0270	C3		        CLR C
+  425:	  0271	22		        RET
+  426:	  0272			FF_O_INC:
+  427:	  0272	08		        INC R0
+  428:	  0273	80 DE		        SJMP FF_O_LOOP
+  429:
+  430:				;========================
+  431:				; FIND FORK FOR X (to block)
+  432:				; Same logic but places X temporarily
+  433:				;========================
+  434:	  0275			FIND_FORK_X:
+  435:	  0275	C3		        CLR C
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 9
+
+
+
+ Line  I  Addr  Code            Source
+
+  436:	  0276	78 30		        MOV R0,#C1
+  437:	  0278			FF_X_LOOP:
+  438:	  0278	E6		        MOV A,@R0
+  439:	  0279	70 16		        JNZ FF_X_NEXT
+  440:	  027B	76 01		        MOV @R0,#01H
+  441:	  027D	88 2E		        MOV 2EH,R0
+  442:	  027F	12 02 E6	        LCALL COUNT_X_THREATS
+  443:	  0282	A8 2E		        MOV R0,2EH
+  444:	  0284	76 00		        MOV @R0,#00H
+  445:	  0286	E5 2D		        MOV A,2DH
+  446:	  0288	B4 02 04	        CJNE A,#02H,FF_X_LT2
+  447:				        ; X would have fork here - block it
+  448:				        ; but only if placing O here doesn't let X win
+  449:	  028B	A8 2E		        MOV R0,2EH
+  450:	  028D	D3		        SETB C
+  451:	  028E	22		        RET
+  452:	  028F			FF_X_LT2:
+  453:	  028F	A8 2E		        MOV R0,2EH
+  454:	  0291			FF_X_NEXT:
+  455:	  0291	E8		        MOV A,R0
+  456:	  0292	B4 38 02	        CJNE A,#C9,FF_X_INC
+  457:	  0295	C3		        CLR C
+  458:	  0296	22		        RET
+  459:	  0297			FF_X_INC:
+  460:	  0297	08		        INC R0
+  461:	  0298	80 DE		        SJMP FF_X_LOOP
+  462:
+  463:				;========================
+  464:				; COUNT_O_THREATS
+  465:				; Count how many lines have exactly 1 O and 2 empty
+  466:				; Result in 2DH
+  467:				;========================
+  468:	  029A			COUNT_O_THREATS:
+  469:	  029A	75 2D 00	        MOV 2DH,#00H
+  470:				        ; Row 1-2-3
+  471:	  029D	7A 30		        MOV R2,#C1
+  472:	  029F	7B 31		        MOV R3,#C2
+  473:	  02A1	7C 32		        MOV R4,#C3
+  474:	  02A3	12 03 32	        LCALL CHECK_THREAT_O
+  475:				        ; Row 4-5-6
+  476:	  02A6	7A 33		        MOV R2,#C4
+  477:	  02A8	7B 34		        MOV R3,#C5
+  478:	  02AA	7C 35		        MOV R4,#C6
+  479:	  02AC	12 03 32	        LCALL CHECK_THREAT_O
+  480:				        ; Row 7-8-9
+  481:	  02AF	7A 36		        MOV R2,#C7
+  482:	  02B1	7B 37		        MOV R3,#C8
+  483:	  02B3	7C 38		        MOV R4,#C9
+  484:	  02B5	12 03 32	        LCALL CHECK_THREAT_O
+  485:				        ; Col 1-4-7
+  486:	  02B8	7A 30		        MOV R2,#C1
+  487:	  02BA	7B 33		        MOV R3,#C4
+  488:	  02BC	7C 36		        MOV R4,#C7
+  489:	  02BE	12 03 32	        LCALL CHECK_THREAT_O
+  490:				        ; Col 2-5-8
+  491:	  02C1	7A 31		        MOV R2,#C2
+
+ASEM-51 V1.3                                        Copyright (c) 2002 by W.W. Heinz                                         PAGE 10
+
+
+
+ Line  I  Addr  Code            Source
+
+  492:	  02C3	7B 34		        MOV R3,#C5
+  493:	  02C5	7C 37		        MOV R4,#C8
+  494:	  02C7	12 03 32	        LCALL CHECK_THREAT_O
+  495:				        ; Col 3-6-9
+  496:	  02CA	7A 32		        MOV R2,#C3
+  497:	  02CC	7B 35		        MOV R3,#C6
+  498:	  02CE	7C 38		        MOV R4,#C9
+  499:	  02D0	12 03 32	        LCALL CHECK_THREAT_O
+  500:				        ; Diag 1-5-9
+  501:	  02D3	7A 30		        MOV R2,#C1
+  502:	  02D5	7B 34		        MOV R3,#C5
+  503:	  02D7	7C 38		        MOV R4,#C9
+  504:	  02D9	12 03 32	        LCALL CHECK_THREAT_O
+  505:				        ; Diag 3-5-7
+  506:	  02DC	7A 32		        MOV R2,#C3
+  507:	  02DE	7B 34		        MOV R3,#C5
+  508:	  02E0	7C 36		        MOV R4,#C7
+  509:	  02E2	12 03 32	        LCALL CHECK_THREAT_O
+  510:	  02E5	22		        RET
+  511:
+  512:				;========================
+  513:				; COUNT_X_THREATS
+  514:				;========================
+  515:	  02E6			COUNT_X_THREATS:
+  516:	  02E6	75 2D 00	        MOV 2DH,#00H
+  517:	  02E9	7A 30		        MOV R2,#C1
+  518:	  02EB	7B 31		        MOV R3,#C2
+  519:	  02ED	7C 32		        MOV R4,#C3
+  520:	  02EF	12 03 68	        LCALL CHECK_THREAT_X
+  521:	  02F2	7A 33		        MOV R2,#C4
+  522:	  02F4	7B 34		        MOV R3,#C5
+  523:	  02F6	7C 35		        MOV R4,#C6
+  524:	  02F8	12 03 68	        LCALL CHECK_THREAT_X
+  525:	  02FB	7A 36		        MOV R2,#C7
+  526:	  02FD	7B 37		        MOV R3,#C8
+  527:	  02FF	7C 38		        MOV R4,#C9
+  528:	  0301	12 03 68	        LCALL CHECK_THREAT_X
+  529:	  0304	7A 30		        MOV R2,#C1
+  530:	  0306	7B 33		        MOV R3,#C4
+  531:	  0308	7C 36		        MOV R4,#C7
+  532:	  030A	12 03 68	        LCALL CHECK_THREAT_X
+  533:	  030D	7A 31		        MOV R2,#C2
+  534:	  030F	7B 34		        MOV R3,#C5
+  535:	  0311	7C 37		        MOV R4,#C8
+  536:	  0313	12 03 68	        LCALL CHECK_THREAT_X
+  537:	  0316	7A 32		        MOV R2,#C3
+  538:	  0318	7B 35		        MOV R3,#C6
+  539:	  031A	7C 38		        MOV R4,#C9
+  540:	  031C	12 03 68	        LCALL CHECK_THREAT_X
+  541:	  031F	7A 30		        MOV R2,#C1
+  542:	  0321	7B 34		        MOV R3,#C5
+  543:	  0323	7C 38		        MOV R4,#C9
+  544:	  0325	12 03 68	        LCALL CHECK_THREAT_X
+  545:	  0328	7A 32		        MOV R2,#C3
+  546:	  032A	7B 34		        MOV R3,#C5
+  547:	  032C	7C 36		        MOV R4,#C7
+
+ASEM-51 V1.3                                        Copyright (c) 2002 by W.W. Heinz                                         PAGE 11
+
+
+
+ Line  I  Addr  Code            Source
+
+  548:	  032E	12 03 68	        LCALL CHECK_THREAT_X
+  549:	  0331	22		        RET
+  550:
+  551:				;========================
+  552:				; CHECK_THREAT_O
+  553:				; If line has exactly 1 O and 0 X, increment 2DH
+  554:				; (no enemy pieces blocking)
+  555:				;========================
+  556:	  0332			CHECK_THREAT_O:
+  557:	  0332	EA		        MOV A,R2
+  558:	  0333	F8		        MOV R0,A
+  559:	  0334	E6		        MOV A,@R0
+  560:	  0335	F5 F0		        MOV B,A          ; B = cell a
+  561:	  0337	EB		        MOV A,R3
+  562:	  0338	F8		        MOV R0,A
+  563:	  0339	E6		        MOV A,@R0
+  564:	  033A	FD		        MOV R5,A         ; R5 = cell b
+  565:	  033B	EC		        MOV A,R4
+  566:	  033C	F8		        MOV R0,A
+  567:	  033D	E6		        MOV A,@R0        ; A = cell c
+  568:
+  569:				        ; check no X (value 1) in line
+  570:	  033E	AE F0		        MOV R6,B
+  571:	  0340	B4 01 01	        CJNE A,#01H,CTO_1
+  572:	  0343	22		        RET              ; X present, not a threat
+  573:	  0344			CTO_1:
+  574:	  0344	ED		        MOV A,R5
+  575:	  0345	B4 01 01	        CJNE A,#01H,CTO_2
+  576:	  0348	22		        RET
+  577:	  0349			CTO_2:
+  578:	  0349	EE		        MOV A,R6
+  579:	  034A	B4 01 01	        CJNE A,#01H,CTO_3
+  580:	  034D	22		        RET
+  581:	  034E			CTO_3:
+  582:				        ; count O's (value 2) in line
+  583:	  034E	7F 00		        MOV R7,#00H
+  584:	  0350	EE		        MOV A,R6
+  585:	  0351	B4 02 01	        CJNE A,#02H,CTO_4
+  586:	  0354	0F		        INC R7
+  587:	  0355			CTO_4:
+  588:	  0355	ED		        MOV A,R5
+  589:	  0356	B4 02 01	        CJNE A,#02H,CTO_5
+  590:	  0359	0F		        INC R7
+  591:	  035A			CTO_5:
+  592:	  035A	EC		        MOV A,R4
+  593:	  035B	F8		        MOV R0,A
+  594:	  035C	E6		        MOV A,@R0
+  595:	  035D	B4 02 01	        CJNE A,#02H,CTO_6
+  596:	  0360	0F		        INC R7
+  597:	  0361			CTO_6:
+  598:				        ; if exactly 1 O in line -> this is a threat
+  599:	  0361	EF		        MOV A,R7
+  600:	  0362	B4 01 02	        CJNE A,#01H,CTO_DONE
+  601:	  0365	05 2D		        INC 2DH
+  602:	  0367			CTO_DONE:
+  603:	  0367	22		        RET
+
+ASEM-51 V1.3                                        Copyright (c) 2002 by W.W. Heinz                                         PAGE 12
+
+
+
+ Line  I  Addr  Code            Source
+
+  604:
+  605:				;========================
+  606:				; CHECK_THREAT_X
+  607:				; If line has exactly 1 X and 0 O, increment 2DH
+  608:				;========================
+  609:	  0368			CHECK_THREAT_X:
+  610:	  0368	EA		        MOV A,R2
+  611:	  0369	F8		        MOV R0,A
+  612:	  036A	E6		        MOV A,@R0
+  613:	  036B	F5 F0		        MOV B,A
+  614:	  036D	EB		        MOV A,R3
+  615:	  036E	F8		        MOV R0,A
+  616:	  036F	E6		        MOV A,@R0
+  617:	  0370	FD		        MOV R5,A
+  618:	  0371	EC		        MOV A,R4
+  619:	  0372	F8		        MOV R0,A
+  620:	  0373	E6		        MOV A,@R0
+  621:
+  622:	  0374	AE F0		        MOV R6,B
+  623:	  0376	B4 02 01	        CJNE A,#02H,CTX_1
+  624:	  0379	22		        RET
+  625:	  037A			CTX_1:
+  626:	  037A	ED		        MOV A,R5
+  627:	  037B	B4 02 01	        CJNE A,#02H,CTX_2
+  628:	  037E	22		        RET
+  629:	  037F			CTX_2:
+  630:	  037F	EE		        MOV A,R6
+  631:	  0380	B4 02 01	        CJNE A,#02H,CTX_3
+  632:	  0383	22		        RET
+  633:	  0384			CTX_3:
+  634:	  0384	7F 00		        MOV R7,#00H
+  635:	  0386	EE		        MOV A,R6
+  636:	  0387	B4 01 01	        CJNE A,#01H,CTX_4
+  637:	  038A	0F		        INC R7
+  638:	  038B			CTX_4:
+  639:	  038B	ED		        MOV A,R5
+  640:	  038C	B4 01 01	        CJNE A,#01H,CTX_5
+  641:	  038F	0F		        INC R7
+  642:	  0390			CTX_5:
+  643:	  0390	EC		        MOV A,R4
+  644:	  0391	F8		        MOV R0,A
+  645:	  0392	E6		        MOV A,@R0
+  646:	  0393	B4 01 01	        CJNE A,#01H,CTX_6
+  647:	  0396	0F		        INC R7
+  648:	  0397			CTX_6:
+  649:	  0397	EF		        MOV A,R7
+  650:	  0398	B4 01 02	        CJNE A,#01H,CTX_DONE
+  651:	  039B	05 2D		        INC 2DH
+  652:	  039D			CTX_DONE:
+  653:	  039D	22		        RET
+  654:
+  655:	  039E			TRY_ROW1:
+  656:	  039E	7A 30		        MOV R2,#C1
+  657:	  03A0	7B 31		        MOV R3,#C2
+  658:	  03A2	7C 32		        MOV R4,#C3
+  659:	  03A4	80 36		        SJMP CHECK_LINE
+
+ASEM-51 V1.3                                        Copyright (c) 2002 by W.W. Heinz                                         PAGE 13
+
+
+
+ Line  I  Addr  Code            Source
+
+  660:	  03A6			TRY_ROW2:
+  661:	  03A6	7A 33		        MOV R2,#C4
+  662:	  03A8	7B 34		        MOV R3,#C5
+  663:	  03AA	7C 35		        MOV R4,#C6
+  664:	  03AC	80 2E		        SJMP CHECK_LINE
+  665:	  03AE			TRY_ROW3:
+  666:	  03AE	7A 36		        MOV R2,#C7
+  667:	  03B0	7B 37		        MOV R3,#C8
+  668:	  03B2	7C 38		        MOV R4,#C9
+  669:	  03B4	80 26		        SJMP CHECK_LINE
+  670:	  03B6			TRY_COL1:
+  671:	  03B6	7A 30		        MOV R2,#C1
+  672:	  03B8	7B 33		        MOV R3,#C4
+  673:	  03BA	7C 36		        MOV R4,#C7
+  674:	  03BC	80 1E		        SJMP CHECK_LINE
+  675:	  03BE			TRY_COL2:
+  676:	  03BE	7A 31		        MOV R2,#C2
+  677:	  03C0	7B 34		        MOV R3,#C5
+  678:	  03C2	7C 37		        MOV R4,#C8
+  679:	  03C4	80 16		        SJMP CHECK_LINE
+  680:	  03C6			TRY_COL3:
+  681:	  03C6	7A 32		        MOV R2,#C3
+  682:	  03C8	7B 35		        MOV R3,#C6
+  683:	  03CA	7C 38		        MOV R4,#C9
+  684:	  03CC	80 0E		        SJMP CHECK_LINE
+  685:	  03CE			TRY_DIA1:
+  686:	  03CE	7A 30		        MOV R2,#C1
+  687:	  03D0	7B 34		        MOV R3,#C5
+  688:	  03D2	7C 38		        MOV R4,#C9
+  689:	  03D4	80 06		        SJMP CHECK_LINE
+  690:	  03D6			TRY_DIA2:
+  691:	  03D6	7A 32		        MOV R2,#C3
+  692:	  03D8	7B 34		        MOV R3,#C5
+  693:	  03DA	7C 36		        MOV R4,#C7
+  694:
+  695:	  03DC			CHECK_LINE:
+  696:	  03DC	EA		        MOV A,R2
+  697:	  03DD	F8		        MOV R0,A
+  698:	  03DE	E6		        MOV A,@R0
+  699:	  03DF	F5 F0		        MOV B,A
+  700:	  03E1	EB		        MOV A,R3
+  701:	  03E2	F8		        MOV R0,A
+  702:	  03E3	E6		        MOV A,@R0
+  703:	  03E4	FD		        MOV R5,A
+  704:	  03E5	EC		        MOV A,R4
+  705:	  03E6	F8		        MOV R0,A
+  706:	  03E7	E6		        MOV A,@R0
+  707:	  03E8	AE F0		        MOV R6,B
+  708:
+  709:	  03EA	B5 2F 0C	        CJNE A,2FH,CL_T2
+  710:	  03ED	ED		        MOV A,R5
+  711:	  03EE	B5 2F 08	        CJNE A,2FH,CL_T2
+  712:	  03F1	E5 F0		        MOV A,B
+  713:	  03F3	70 04		        JNZ CL_T2
+  714:	  03F5	EA		        MOV A,R2
+  715:	  03F6	F8		        MOV R0,A
+
+ASEM-51 V1.3                                        Copyright (c) 2002 by W.W. Heinz                                         PAGE 14
+
+
+
+ Line  I  Addr  Code            Source
+
+  716:	  03F7	D3		        SETB C
+  717:	  03F8	22		        RET
+  718:	  03F9			CL_T2:
+  719:	  03F9	ED		        MOV A,R5
+  720:	  03FA	B5 2F 0D	        CJNE A,2FH,CL_T3
+  721:	  03FD	EE		        MOV A,R6
+  722:	  03FE	B5 2F 09	        CJNE A,2FH,CL_T3
+  723:	  0401	EB		        MOV A,R3
+  724:	  0402	F8		        MOV R0,A
+  725:	  0403	E6		        MOV A,@R0
+  726:	  0404	70 04		        JNZ CL_T3
+  727:	  0406	EB		        MOV A,R3
+  728:	  0407	F8		        MOV R0,A
+  729:	  0408	D3		        SETB C
+  730:	  0409	22		        RET
+  731:	  040A			CL_T3:
+  732:	  040A	EE		        MOV A,R6
+  733:	  040B	B5 2F 0D	        CJNE A,2FH,CL_NONE
+  734:	  040E	ED		        MOV A,R5
+  735:	  040F	B5 2F 09	        CJNE A,2FH,CL_NONE
+  736:	  0412	EC		        MOV A,R4
+  737:	  0413	F8		        MOV R0,A
+  738:	  0414	E6		        MOV A,@R0
+  739:	  0415	70 04		        JNZ CL_NONE
+  740:	  0417	EC		        MOV A,R4
+  741:	  0418	F8		        MOV R0,A
+  742:	  0419	D3		        SETB C
+  743:	  041A	22		        RET
+  744:	  041B			CL_NONE:
+  745:	  041B	C3		        CLR C
+  746:	  041C	22		        RET
+  747:
+  748:				;========================
+  749:				; CLEAR BOARD
+  750:				;========================
+  751:	  041D			CLEAR_BOARD:
+  752:	  041D	78 30		        MOV R0,#C1
+  753:	  041F	7F 09		        MOV R7,#09
+  754:	  0421			CB1:
+  755:	  0421	76 00		        MOV @R0,#00H
+  756:	  0423	08		        INC R0
+  757:	  0424	DF FB		        DJNZ R7,CB1
+  758:	  0426	22		        RET
+  759:
+  760:				;========================
+  761:				; RENDER BOARD
+  762:				;
+  763:				; 20x4 LCD layout:
+  764:				; Row1: "7:_ 8:_ 9:_  T: X"  (18 chars)
+  765:				; Row2: "4:_ 5:_ 6:_       "
+  766:				; Row3: "1:_ 2:_ 3:_       "
+  767:				; Row4: "C=Menu            "
+  768:				;========================
+  769:	  0427			RENDER_BOARD:
+  770:	  0427	74 01		        MOV A,#01H
+  771:	  0429	12 05 DB	        LCALL LCD_CMD
+
+ASEM-51 V1.3                                        Copyright (c) 2002 by W.W. Heinz                                         PAGE 15
+
+
+
+ Line  I  Addr  Code            Source
+
+  772:
+  773:	  042C	74 80		        MOV A,#LCD_LINE1
+  774:	  042E	12 05 DB	        LCALL LCD_CMD
+  775:
+  776:	  0431	74 37		        MOV A,#'7'
+  777:	  0433	12 05 EA	        LCALL LCD_DATA
+  778:	  0436	74 3A		        MOV A,#':'
+  779:	  0438	12 05 EA	        LCALL LCD_DATA
+  780:	  043B	E5 36		        MOV A,C7
+  781:	  043D	12 05 32	        LCALL CELL_TO_CHAR
+  782:	  0440	12 05 EA	        LCALL LCD_DATA
+  783:	  0443	74 20		        MOV A,#' '
+  784:	  0445	12 05 EA	        LCALL LCD_DATA
+  785:	  0448	74 38		        MOV A,#'8'
+  786:	  044A	12 05 EA	        LCALL LCD_DATA
+  787:	  044D	74 3A		        MOV A,#':'
+  788:	  044F	12 05 EA	        LCALL LCD_DATA
+  789:	  0452	E5 37		        MOV A,C8
+  790:	  0454	12 05 32	        LCALL CELL_TO_CHAR
+  791:	  0457	12 05 EA	        LCALL LCD_DATA
+  792:	  045A	74 20		        MOV A,#' '
+  793:	  045C	12 05 EA	        LCALL LCD_DATA
+  794:	  045F	74 39		        MOV A,#'9'
+  795:	  0461	12 05 EA	        LCALL LCD_DATA
+  796:	  0464	74 3A		        MOV A,#':'
+  797:	  0466	12 05 EA	        LCALL LCD_DATA
+  798:	  0469	E5 38		        MOV A,C9
+  799:	  046B	12 05 32	        LCALL CELL_TO_CHAR
+  800:	  046E	12 05 EA	        LCALL LCD_DATA
+  801:	  0471	74 20		        MOV A,#' '
+  802:	  0473	12 05 EA	        LCALL LCD_DATA
+  803:	  0476	74 20		        MOV A,#' '
+  804:	  0478	12 05 EA	        LCALL LCD_DATA
+  805:	  047B	74 54		        MOV A,#'T'
+  806:	  047D	12 05 EA	        LCALL LCD_DATA
+  807:	  0480	74 3A		        MOV A,#':'
+  808:	  0482	12 05 EA	        LCALL LCD_DATA
+  809:	  0485	74 20		        MOV A,#' '
+  810:	  0487	12 05 EA	        LCALL LCD_DATA
+  811:	  048A	E5 39		        MOV A,CURP
+  812:	  048C	B4 01 08	        CJNE A,#01H,RB_O1
+  813:	  048F	74 58		        MOV A,#'X'
+  814:	  0491	12 05 EA	        LCALL LCD_DATA
+  815:	  0494	02 04 9C	        LJMP RB_LINE2
+  816:	  0497			RB_O1:
+  817:	  0497	74 4F		        MOV A,#'O'
+  818:	  0499	12 05 EA	        LCALL LCD_DATA
+  819:
+  820:	  049C			RB_LINE2:
+  821:	  049C	74 C0		        MOV A,#LCD_LINE2
+  822:	  049E	12 05 DB	        LCALL LCD_CMD
+  823:
+  824:	  04A1	74 34		        MOV A,#'4'
+  825:	  04A3	12 05 EA	        LCALL LCD_DATA
+  826:	  04A6	74 3A		        MOV A,#':'
+  827:	  04A8	12 05 EA	        LCALL LCD_DATA
+
+ASEM-51 V1.3                                        Copyright (c) 2002 by W.W. Heinz                                         PAGE 16
+
+
+
+ Line  I  Addr  Code            Source
+
+  828:	  04AB	E5 33		        MOV A,C4
+  829:	  04AD	12 05 32	        LCALL CELL_TO_CHAR
+  830:	  04B0	12 05 EA	        LCALL LCD_DATA
+  831:	  04B3	74 20		        MOV A,#' '
+  832:	  04B5	12 05 EA	        LCALL LCD_DATA
+  833:	  04B8	74 35		        MOV A,#'5'
+  834:	  04BA	12 05 EA	        LCALL LCD_DATA
+  835:	  04BD	74 3A		        MOV A,#':'
+  836:	  04BF	12 05 EA	        LCALL LCD_DATA
+  837:	  04C2	E5 34		        MOV A,C5
+  838:	  04C4	12 05 32	        LCALL CELL_TO_CHAR
+  839:	  04C7	12 05 EA	        LCALL LCD_DATA
+  840:	  04CA	74 20		        MOV A,#' '
+  841:	  04CC	12 05 EA	        LCALL LCD_DATA
+  842:	  04CF	74 36		        MOV A,#'6'
+  843:	  04D1	12 05 EA	        LCALL LCD_DATA
+  844:	  04D4	74 3A		        MOV A,#':'
+  845:	  04D6	12 05 EA	        LCALL LCD_DATA
+  846:	  04D9	E5 35		        MOV A,C6
+  847:	  04DB	12 05 32	        LCALL CELL_TO_CHAR
+  848:	  04DE	12 05 EA	        LCALL LCD_DATA
+  849:
+  850:	  04E1	74 94		        MOV A,#LCD_LINE3
+  851:	  04E3	12 05 DB	        LCALL LCD_CMD
+  852:
+  853:	  04E6	74 31		        MOV A,#'1'
+  854:	  04E8	12 05 EA	        LCALL LCD_DATA
+  855:	  04EB	74 3A		        MOV A,#':'
+  856:	  04ED	12 05 EA	        LCALL LCD_DATA
+  857:	  04F0	E5 30		        MOV A,C1
+  858:	  04F2	12 05 32	        LCALL CELL_TO_CHAR
+  859:	  04F5	12 05 EA	        LCALL LCD_DATA
+  860:	  04F8	74 20		        MOV A,#' '
+  861:	  04FA	12 05 EA	        LCALL LCD_DATA
+  862:	  04FD	74 32		        MOV A,#'2'
+  863:	  04FF	12 05 EA	        LCALL LCD_DATA
+  864:	  0502	74 3A		        MOV A,#':'
+  865:	  0504	12 05 EA	        LCALL LCD_DATA
+  866:	  0507	E5 31		        MOV A,C2
+  867:	  0509	12 05 32	        LCALL CELL_TO_CHAR
+  868:	  050C	12 05 EA	        LCALL LCD_DATA
+  869:	  050F	74 20		        MOV A,#' '
+  870:	  0511	12 05 EA	        LCALL LCD_DATA
+  871:	  0514	74 33		        MOV A,#'3'
+  872:	  0516	12 05 EA	        LCALL LCD_DATA
+  873:	  0519	74 3A		        MOV A,#':'
+  874:	  051B	12 05 EA	        LCALL LCD_DATA
+  875:	  051E	E5 32		        MOV A,C3
+  876:	  0520	12 05 32	        LCALL CELL_TO_CHAR
+  877:	  0523	12 05 EA	        LCALL LCD_DATA
+  878:
+  879:	  0526	74 D4		        MOV A,#LCD_LINE4
+  880:	  0528	12 05 DB	        LCALL LCD_CMD
+  881:	  052B	90 07 26	        MOV DPTR,#MSG_HINT
+  882:	  052E	12 05 F9	        LCALL LCD_PRINT
+  883:
+
+ASEM-51 V1.3                                        Copyright (c) 2002 by W.W. Heinz                                         PAGE 17
+
+
+
+ Line  I  Addr  Code            Source
+
+  884:	  0531	22		        RET
+  885:
+  886:				;========================
+  887:				; CELL VALUE TO CHAR
+  888:				;========================
+  889:	  0532			CELL_TO_CHAR:
+  890:	  0532	B4 00 03	        CJNE A,#00H,CTC1
+  891:	  0535	74 5F		        MOV A,#'_'
+  892:	  0537	22		        RET
+  893:	  0538			CTC1:
+  894:	  0538	B4 01 03	        CJNE A,#01H,CTC2
+  895:	  053B	74 58		        MOV A,#'X'
+  896:	  053D	22		        RET
+  897:	  053E			CTC2:
+  898:	  053E	74 4F		        MOV A,#'O'
+  899:	  0540	22		        RET
+  900:
+  901:				;========================
+  902:				; CHECK DRAW
+  903:				;========================
+  904:	  0541			CHECK_DRAW:
+  905:	  0541	78 30		        MOV R0,#C1
+  906:	  0543	7F 09		        MOV R7,#09
+  907:	  0545			CD1:
+  908:	  0545	E6		        MOV A,@R0
+  909:	  0546	60 06		        JZ CD_NOT
+  910:	  0548	08		        INC R0
+  911:	  0549	DF FA		        DJNZ R7,CD1
+  912:	  054B	74 01		        MOV A,#01H
+  913:	  054D	22		        RET
+  914:	  054E			CD_NOT:
+  915:	  054E	74 00		        MOV A,#00H
+  916:	  0550	22		        RET
+  917:
+  918:				;========================
+  919:				; CHECK WIN
+  920:				;========================
+  921:	  0551			CHECK_WIN:
+  922:	  0551	E5 30		        MOV A,C1
+  923:	  0553	60 07		        JZ CW2
+  924:	  0555	B5 31 04	        CJNE A,C2,CW2
+  925:	  0558	B5 32 01	        CJNE A,C3,CW2
+  926:	  055B	22		        RET
+  927:	  055C			CW2:
+  928:	  055C	E5 33		        MOV A,C4
+  929:	  055E	60 07		        JZ CW3
+  930:	  0560	B5 34 04	        CJNE A,C5,CW3
+  931:	  0563	B5 35 01	        CJNE A,C6,CW3
+  932:	  0566	22		        RET
+  933:	  0567			CW3:
+  934:	  0567	E5 36		        MOV A,C7
+  935:	  0569	60 07		        JZ CW4
+  936:	  056B	B5 37 04	        CJNE A,C8,CW4
+  937:	  056E	B5 38 01	        CJNE A,C9,CW4
+  938:	  0571	22		        RET
+  939:	  0572			CW4:
+
+ASEM-51 V1.3                                        Copyright (c) 2002 by W.W. Heinz                                         PAGE 18
+
+
+
+ Line  I  Addr  Code            Source
+
+  940:	  0572	E5 30		        MOV A,C1
+  941:	  0574	60 07		        JZ CW5
+  942:	  0576	B5 33 04	        CJNE A,C4,CW5
+  943:	  0579	B5 36 01	        CJNE A,C7,CW5
+  944:	  057C	22		        RET
+  945:	  057D			CW5:
+  946:	  057D	E5 31		        MOV A,C2
+  947:	  057F	60 07		        JZ CW6
+  948:	  0581	B5 34 04	        CJNE A,C5,CW6
+  949:	  0584	B5 37 01	        CJNE A,C8,CW6
+  950:	  0587	22		        RET
+  951:	  0588			CW6:
+  952:	  0588	E5 32		        MOV A,C3
+  953:	  058A	60 07		        JZ CW7
+  954:	  058C	B5 35 04	        CJNE A,C6,CW7
+  955:	  058F	B5 38 01	        CJNE A,C9,CW7
+  956:	  0592	22		        RET
+  957:	  0593			CW7:
+  958:	  0593	E5 30		        MOV A,C1
+  959:	  0595	60 07		        JZ CW8
+  960:	  0597	B5 34 04	        CJNE A,C5,CW8
+  961:	  059A	B5 38 01	        CJNE A,C9,CW8
+  962:	  059D	22		        RET
+  963:	  059E			CW8:
+  964:	  059E	E5 32		        MOV A,C3
+  965:	  05A0	60 07		        JZ CW_NONE
+  966:	  05A2	B5 34 04	        CJNE A,C5,CW_NONE
+  967:	  05A5	B5 36 01	        CJNE A,C7,CW_NONE
+  968:	  05A8	22		        RET
+  969:	  05A9			CW_NONE:
+  970:	  05A9	74 00		        MOV A,#00H
+  971:	  05AB	22		        RET
+  972:
+  973:				;========================
+  974:				; SHOW INVALID
+  975:				;========================
+  976:	  05AC			SHOW_INVALID:
+  977:	  05AC	74 D4		        MOV A,#LCD_LINE4
+  978:	  05AE	12 05 DB	        LCALL LCD_CMD
+  979:	  05B1	90 07 3B	        MOV DPTR,#MSG_INV
+  980:	  05B4	12 05 F9	        LCALL LCD_PRINT
+  981:	  05B7	12 06 CA	        LCALL DELAY_BIG
+  982:	  05BA	12 06 CA	        LCALL DELAY_BIG
+  983:	  05BD	12 04 27	        LCALL RENDER_BOARD
+  984:	  05C0	22		        RET
+  985:
+  986:				;========================
+  987:				; LCD ROUTINES
+  988:				;========================
+  989:	  05C1			LCD_INIT:
+  990:	  05C1	74 38		        MOV A,#38H
+  991:	  05C3	12 05 DB	        LCALL LCD_CMD
+  992:	  05C6	74 0C		        MOV A,#0CH
+  993:	  05C8	12 05 DB	        LCALL LCD_CMD
+  994:	  05CB	74 01		        MOV A,#01H
+  995:	  05CD	12 05 DB	        LCALL LCD_CMD
+
+ASEM-51 V1.3                                        Copyright (c) 2002 by W.W. Heinz                                         PAGE 19
+
+
+
+ Line  I  Addr  Code            Source
+
+  996:	  05D0	74 06		        MOV A,#06H
+  997:	  05D2	12 05 DB	        LCALL LCD_CMD
+  998:	  05D5	74 80		        MOV A,#LCD_LINE1
+  999:	  05D7	12 05 DB	        LCALL LCD_CMD
+ 1000:	  05DA	22		        RET
+ 1001:
+ 1002:	  05DB			LCD_CMD:
+ 1003:	  05DB	C2 A0		        CLR RS
+ 1004:	  05DD	F5 B0		        MOV LCDPORT,A
+ 1005:	  05DF	D2 A2		        SETB E
+ 1006:	  05E1	12 06 C1	        LCALL DELAY
+ 1007:	  05E4	C2 A2		        CLR E
+ 1008:	  05E6	12 06 C1	        LCALL DELAY
+ 1009:	  05E9	22		        RET
+ 1010:
+ 1011:	  05EA			LCD_DATA:
+ 1012:	  05EA	D2 A0		        SETB RS
+ 1013:	  05EC	F5 B0		        MOV LCDPORT,A
+ 1014:	  05EE	D2 A2		        SETB E
+ 1015:	  05F0	12 06 C1	        LCALL DELAY
+ 1016:	  05F3	C2 A2		        CLR E
+ 1017:	  05F5	12 06 C1	        LCALL DELAY
+ 1018:	  05F8	22		        RET
+ 1019:
+ 1020:	  05F9			LCD_PRINT:
+ 1021:	  05F9			LP1:
+ 1022:	  05F9	E4		        CLR A
+ 1023:	  05FA	93		        MOVC A,@A+DPTR
+ 1024:	  05FB	60 07		        JZ LP2
+ 1025:	  05FD	12 05 EA	        LCALL LCD_DATA
+ 1026:	  0600	A3		        INC DPTR
+ 1027:	  0601	02 05 F9	        LJMP LP1
+ 1028:	  0604			LP2:
+ 1029:	  0604	22		        RET
+ 1030:
+ 1031:				;========================
+ 1032:				; KEYPAD SCAN
+ 1033:				;
+ 1034:				; Physical keypad wiring (from Proteus schematic):
+ 1035:				;   Columns: C0=rightmost, C1, C2, C3=leftmost
+ 1036:				;   Rows:    R0=bottom(ON row), R1, R2, R3=top
+ 1037:				;
+ 1038:				;   C0 col: 7(R3), 4(R2), 1(R1), C(R0)
+ 1039:				;   C1 col: 8(R3), 5(R2), 2(R1), 0(R0)
+ 1040:				;   C2 col: 9(R3), 6(R2), 3(R1), =(R0)
+ 1041:				;   C3 col: /(R3), *(R2), -(R1), +(R0)
+ 1042:				;
+ 1043:				; P1.0=C0(col drive), P1.1=C1, P1.2=C2, P1.3=C3
+ 1044:				; P1.4=R0(row read),  P1.5=R1, P1.6=R2, P1.7=R3
+ 1045:				;========================
+ 1046:				; KEYPAD WIRING (verified from schematic):
+ 1047:				;   P1.0 = C0 = keypad row A  (top row:    /, 9, 8, 7)  <- DRIVE output
+ 1048:				;   P1.1 = C1 = keypad row B  (           *, 6, 5, 4)  <- DRIVE output
+ 1049:				;   P1.2 = C2 = keypad row C  (           -, 3, 2, 1)  <- DRIVE output
+ 1050:				;   P1.3 = C3 = keypad row D  (bottom row: +, =, 0, C)  <- DRIVE output
+ 1051:				;   P1.4 = R0 = keypad col1  (rightmost: 7, 4, 1, C)   <- READ input
+
+ASEM-51 V1.3                                        Copyright (c) 2002 by W.W. Heinz                                         PAGE 20
+
+
+
+ Line  I  Addr  Code            Source
+
+ 1052:				;   P1.5 = R1 = keypad col2  (           8, 5, 2, 0)   <- READ input
+ 1053:				;   P1.6 = R2 = keypad col3  (           9, 6, 3, =)   <- READ input
+ 1054:				;   P1.7 = R3 = keypad col4  (leftmost:  /, *, -, +)   <- READ input
+ 1055:				;
+ 1056:				; Scan: drive one row LOW, read columns P1.4-P1.7
+ 1057:				;   Drive P1.0 low -> P1=FEH  read: P1.4='7' P1.5='8' P1.6='9' P1.7='/'
+ 1058:				;   Drive P1.1 low -> P1=FDH  read: P1.4='4' P1.5='5' P1.6='6' P1.7='*'
+ 1059:				;   Drive P1.2 low -> P1=FBH  read: P1.4='1' P1.5='2' P1.6='3' P1.7='-'
+ 1060:				;   Drive P1.3 low -> P1=F7H  read: P1.4='C' P1.5='0' P1.6='=' P1.7='+'
+ 1061:				;========================
+ 1062:	  0605			KEY_SCAN:
+ 1063:				        ; --- Drive row A (P1.0) low ---
+ 1064:	  0605	75 90 FE	        MOV P1,#0FEH
+ 1065:	  0608	00		        NOP
+ 1066:	  0609	00		        NOP
+ 1067:	  060A	30 94 3F	        JNB P1.4,KEY_7
+ 1068:	  060D	30 95 42	        JNB P1.5,KEY_8
+ 1069:	  0610	30 96 45	        JNB P1.6,KEY_9
+ 1070:	  0613	30 97 48	        JNB P1.7,KEY_DIV
+ 1071:
+ 1072:				        ; --- Drive row B (P1.1) low ---
+ 1073:	  0616	75 90 FD	        MOV P1,#0FDH
+ 1074:	  0619	00		        NOP
+ 1075:	  061A	00		        NOP
+ 1076:	  061B	30 94 46	        JNB P1.4,KEY_4
+ 1077:	  061E	30 95 49	        JNB P1.5,KEY_5
+ 1078:	  0621	30 96 4C	        JNB P1.6,KEY_6
+ 1079:	  0624	30 97 4F	        JNB P1.7,KEY_MUL
+ 1080:
+ 1081:				        ; --- Drive row C (P1.2) low ---
+ 1082:	  0627	75 90 FB	        MOV P1,#0FBH
+ 1083:	  062A	00		        NOP
+ 1084:	  062B	00		        NOP
+ 1085:	  062C	30 94 4D	        JNB P1.4,KEY_1
+ 1086:	  062F	30 95 50	        JNB P1.5,KEY_2
+ 1087:	  0632	30 96 53	        JNB P1.6,KEY_3
+ 1088:	  0635	30 97 56	        JNB P1.7,KEY_SUB
+ 1089:
+ 1090:				        ; --- Drive row D (P1.3) low ---
+ 1091:	  0638	75 90 F7	        MOV P1,#0F7H
+ 1092:	  063B	00		        NOP
+ 1093:	  063C	00		        NOP
+ 1094:	  063D	30 94 54	        JNB P1.4,KEY_C
+ 1095:	  0640	30 95 57	        JNB P1.5,KEY_0
+ 1096:	  0643	30 96 5A	        JNB P1.6,KEY_EQ
+ 1097:	  0646	30 97 5D	        JNB P1.7,KEY_ADD
+ 1098:
+ 1099:	  0649	74 00		        MOV A,#00H
+ 1100:	  064B	22		        RET
+ 1101:
+ 1102:	  064C			KEY_7:
+ 1103:	  064C	74 37		        MOV A,#'7'
+ 1104:	  064E	12 06 AC	        LCALL WAIT_RELEASE
+ 1105:	  0651	22		        RET
+ 1106:	  0652			KEY_8:
+ 1107:	  0652	74 38		        MOV A,#'8'
+
+ASEM-51 V1.3                                        Copyright (c) 2002 by W.W. Heinz                                         PAGE 21
+
+
+
+ Line  I  Addr  Code            Source
+
+ 1108:	  0654	12 06 AC	        LCALL WAIT_RELEASE
+ 1109:	  0657	22		        RET
+ 1110:	  0658			KEY_9:
+ 1111:	  0658	74 39		        MOV A,#'9'
+ 1112:	  065A	12 06 AC	        LCALL WAIT_RELEASE
+ 1113:	  065D	22		        RET
+ 1114:	  065E			KEY_DIV:
+ 1115:	  065E	74 2F		        MOV A,#'/'
+ 1116:	  0660	12 06 AC	        LCALL WAIT_RELEASE
+ 1117:	  0663	22		        RET
+ 1118:	  0664			KEY_4:
+ 1119:	  0664	74 34		        MOV A,#'4'
+ 1120:	  0666	12 06 AC	        LCALL WAIT_RELEASE
+ 1121:	  0669	22		        RET
+ 1122:	  066A			KEY_5:
+ 1123:	  066A	74 35		        MOV A,#'5'
+ 1124:	  066C	12 06 AC	        LCALL WAIT_RELEASE
+ 1125:	  066F	22		        RET
+ 1126:	  0670			KEY_6:
+ 1127:	  0670	74 36		        MOV A,#'6'
+ 1128:	  0672	12 06 AC	        LCALL WAIT_RELEASE
+ 1129:	  0675	22		        RET
+ 1130:	  0676			KEY_MUL:
+ 1131:	  0676	74 2A		        MOV A,#'*'
+ 1132:	  0678	12 06 AC	        LCALL WAIT_RELEASE
+ 1133:	  067B	22		        RET
+ 1134:	  067C			KEY_1:
+ 1135:	  067C	74 31		        MOV A,#'1'
+ 1136:	  067E	12 06 AC	        LCALL WAIT_RELEASE
+ 1137:	  0681	22		        RET
+ 1138:	  0682			KEY_2:
+ 1139:	  0682	74 32		        MOV A,#'2'
+ 1140:	  0684	12 06 AC	        LCALL WAIT_RELEASE
+ 1141:	  0687	22		        RET
+ 1142:	  0688			KEY_3:
+ 1143:	  0688	74 33		        MOV A,#'3'
+ 1144:	  068A	12 06 AC	        LCALL WAIT_RELEASE
+ 1145:	  068D	22		        RET
+ 1146:	  068E			KEY_SUB:
+ 1147:	  068E	74 2D		        MOV A,#'-'
+ 1148:	  0690	12 06 AC	        LCALL WAIT_RELEASE
+ 1149:	  0693	22		        RET
+ 1150:	  0694			KEY_C:
+ 1151:	  0694	74 43		        MOV A,#'C'
+ 1152:	  0696	12 06 AC	        LCALL WAIT_RELEASE
+ 1153:	  0699	22		        RET
+ 1154:	  069A			KEY_0:
+ 1155:	  069A	74 30		        MOV A,#'0'
+ 1156:	  069C	12 06 AC	        LCALL WAIT_RELEASE
+ 1157:	  069F	22		        RET
+ 1158:	  06A0			KEY_EQ:
+ 1159:	  06A0	74 3D		        MOV A,#'='
+ 1160:	  06A2	12 06 AC	        LCALL WAIT_RELEASE
+ 1161:	  06A5	22		        RET
+ 1162:	  06A6			KEY_ADD:
+ 1163:	  06A6	74 2B		        MOV A,#'+'
+
+ASEM-51 V1.3                                        Copyright (c) 2002 by W.W. Heinz                                         PAGE 22
+
+
+
+ Line  I  Addr  Code            Source
+
+ 1164:	  06A8	12 06 AC	        LCALL WAIT_RELEASE
+ 1165:	  06AB	22		        RET
+ 1166:
+ 1167:				;========================
+ 1168:				; WAIT KEY RELEASE
+ 1169:				; Release = all column inputs (P1.4-P1.7) back HIGH
+ 1170:				; Set all row drives HIGH (P1=FFH) so no column is pulled low
+ 1171:				;========================
+ 1172:	  06AC			WAIT_RELEASE:
+ 1173:	  06AC	C0 E0		        PUSH ACC
+ 1174:	  06AE			WR1:
+ 1175:	  06AE	75 90 FF	        MOV P1,#0FFH
+ 1176:	  06B1	00		        NOP
+ 1177:	  06B2	00		        NOP
+ 1178:	  06B3	00		        NOP
+ 1179:	  06B4	E5 90		        MOV A,P1
+ 1180:	  06B6	54 F0		        ANL A,#0F0H
+ 1181:	  06B8	B4 F0 F3	        CJNE A,#0F0H,WR1
+ 1182:	  06BB	12 06 C1	        LCALL DELAY
+ 1183:	  06BE	D0 E0		        POP ACC
+ 1184:	  06C0	22		        RET
+ 1185:
+ 1186:				;========================
+ 1187:				; DELAYS
+ 1188:				;========================
+ 1189:	  06C1			DELAY:
+ 1190:	  06C1	7E 14		        MOV R6,#20
+ 1191:	  06C3			D1:
+ 1192:	  06C3	7F FF		        MOV R7,#255
+ 1193:	  06C5			D2:
+ 1194:	  06C5	DF FE		        DJNZ R7,D2
+ 1195:	  06C7	DE FA		        DJNZ R6,D1
+ 1196:	  06C9	22		        RET
+ 1197:
+ 1198:	  06CA			DELAY_BIG:
+ 1199:	  06CA	7C 50		        MOV R4,#80
+ 1200:	  06CC			D3:
+ 1201:	  06CC	12 06 C1	        LCALL DELAY
+ 1202:	  06CF	DC FB		        DJNZ R4,D3
+ 1203:	  06D1	22		        RET
+ 1204:
+ 1205:				;========================
+ 1206:				; STRINGS (max 20 chars each)
+ 1207:				;========================
+ 1208:	  06D2	54 49 43 2D	MSG_TITLE: DB 'TIC-TAC-TOE GAME    ',0
+	  06D6	54 41 43 2D
+	  06DA	54 4F 45 20
+	  06DE	47 41 4D 45
+	  06E2	20 20 20 20
+	  06E6	00
+ 1209:	  06E7	31 3A 20 50	MSG1:      DB '1: Player vs Player ',0
+	  06EB	6C 61 79 65
+	  06EF	72 20 76 73
+	  06F3	20 50 6C 61
+	  06F7	79 65 72 20
+	  06FB	00
+
+ASEM-51 V1.3                                        Copyright (c) 2002 by W.W. Heinz                                         PAGE 23
+
+
+
+ Line  I  Addr  Code            Source
+
+ 1210:	  06FC	32 3A 20 50	MSG2:      DB '2: Player vs AI     ',0
+	  0700	6C 61 79 65
+	  0704	72 20 76 73
+	  0708	20 41 49 20
+	  070C	20 20 20 20
+	  0710	00
+ 1211:	  0711	50 72 65 73	MSG_SEL:   DB 'Press 1 or 2        ',0
+	  0715	73 20 31 20
+	  0719	6F 72 20 32
+	  071D	20 20 20 20
+	  0721	20 20 20 20
+	  0725	00
+ 1212:	  0726	43 3D 4D 65	MSG_HINT:  DB 'C=Menu              ',0
+	  072A	6E 75 20 20
+	  072E	20 20 20 20
+	  0732	20 20 20 20
+	  0736	20 20 20 20
+	  073A	00
+ 1213:	  073B	43 65 6C 6C	MSG_INV:   DB 'Cell taken! Retry   ',0
+	  073F	20 74 61 6B
+	  0743	65 6E 21 20
+	  0747	52 65 74 72
+	  074B	79 20 20 20
+	  074F	00
+ 1214:	  0750	2A 2A 2A 20	MSG_GOVER: DB '*** GAME OVER ***   ',0
+	  0754	47 41 4D 45
+	  0758	20 4F 56 45
+	  075C	52 20 2A 2A
+	  0760	2A 20 20 20
+	  0764	00
+ 1215:	  0765	50 6C 61 79	MSG_XWIN:  DB 'Player X WINS!      ',0
+	  0769	65 72 20 58
+	  076D	20 57 49 4E
+	  0771	53 21 20 20
+	  0775	20 20 20 20
+	  0779	00
+ 1216:	  077A	50 6C 61 79	MSG_OWIN:  DB 'Player O WINS!      ',0
+	  077E	65 72 20 4F
+	  0782	20 57 49 4E
+	  0786	53 21 20 20
+	  078A	20 20 20 20
+	  078E	00
+ 1217:	  078F	49 74 73 20	MSG_DRAW:  DB 'Its a DRAW!         ',0
+	  0793	61 20 44 52
+	  0797	41 57 21 20
+	  079B	20 20 20 20
+	  079F	20 20 20 20
+	  07A3	00
+ 1218:	  07A4	50 72 65 73	MSG_RST:   DB 'Press C to restart  ',0
+	  07A8	73 20 43 20
+	  07AC	74 6F 20 72
+	  07B0	65 73 74 61
+	  07B4	72 74 20 20
+	  07B8	00
+ 1219:	  07B9	20 20 20 20	MSG_BLANK: DB '                    ',0
+	  07BD	20 20 20 20
+
+ASEM-51 V1.3                                        Copyright (c) 2002 by W.W. Heinz                                         PAGE 24
+
+
+
+ Line  I  Addr  Code            Source
+
+	  07C1	20 20 20 20
+	  07C5	20 20 20 20
+	  07C9	20 20 20 20
+	  07CD	00
+ 1220:
+ 1221:				        END
+
+
+
+
+
+                     register banks used:  ---
+
+                     no errors
+
+
+
+
+ASEM-51 V1.3                                        Copyright (c) 2002 by W.W. Heinz                                         PAGE 25
+
+
+
+
+
+	       L I S T   O F   S Y M B O L S
+	       =============================
+
+
+SYMBOL				  TYPE     VALUE	LINE
+------------------------------------------------------------
+??ASEM_51			  NUMBER    8051
+??VERSION			  NUMBER    0130
+AC				  BIT	      D6
+ACC				  DATA	      E0
+AI_CORNER			  CODE	    01C9	 308
+AI_DONE				  CODE	    01F2	 337
+AI_MOVE				  CODE	    0188	 259
+AI_OPP2				  CODE	    01AB	 288
+AI_OPP3				  CODE	    01B5	 294
+AI_OPP4				  CODE	    01BF	 300
+AI_SET_X			  CODE	    008B	 105
+AI_SHOW_END			  CODE	    0094	 110
+AI_TURN				  CODE	    0073	  93
+B				  DATA	      F0
+C1				  NUMBER    0030	  13
+C2				  NUMBER    0031	  14
+C3				  NUMBER    0032	  15
+C4				  NUMBER    0033	  16
+C5				  NUMBER    0034	  17
+C6				  NUMBER    0035	  18
+C7				  NUMBER    0036	  19
+C8				  NUMBER    0037	  20
+C9				  NUMBER    0038	  21
+CB1				  CODE	    0421	 754
+CD1				  CODE	    0545	 907
+CD_NOT				  CODE	    054E	 914
+CELL_TO_CHAR			  CODE	    0532	 889
+CHECK_DRAW			  CODE	    0541	 904
+CHECK_LINE			  CODE	    03DC	 695
+CHECK_THREAT_O			  CODE	    0332	 556
+CHECK_THREAT_X			  CODE	    0368	 609
+CHECK_WIN			  CODE	    0551	 921
+CHK_AI				  CODE	    0054	  71
+CLEAR_BOARD			  CODE	    041D	 751
+CL_NONE				  CODE	    041B	 744
+CL_T2				  CODE	    03F9	 718
+CL_T3				  CODE	    040A	 731
+COUNT_O_THREATS			  CODE	    029A	 468
+COUNT_X_THREATS			  CODE	    02E6	 515
+CTC1				  CODE	    0538	 893
+CTC2				  CODE	    053E	 897
+CTO_1				  CODE	    0344	 573
+CTO_2				  CODE	    0349	 577
+CTO_3				  CODE	    034E	 581
+CTO_4				  CODE	    0355	 587
+CTO_5				  CODE	    035A	 591
+CTO_6				  CODE	    0361	 597
+CTO_DONE			  CODE	    0367	 602
+CTX_1				  CODE	    037A	 625
+CTX_2				  CODE	    037F	 629
+
+ASEM-51 V1.3                                        Copyright (c) 2002 by W.W. Heinz                                         PAGE 26
+
+
+
+SYMBOL				  TYPE     VALUE	LINE
+------------------------------------------------------------
+CTX_3				  CODE	    0384	 633
+CTX_4				  CODE	    038B	 638
+CTX_5				  CODE	    0390	 642
+CTX_6				  CODE	    0397	 648
+CTX_DONE			  CODE	    039D	 652
+CURP				  NUMBER    0039	  23
+CW2				  CODE	    055C	 927
+CW3				  CODE	    0567	 933
+CW4				  CODE	    0572	 939
+CW5				  CODE	    057D	 945
+CW6				  CODE	    0588	 951
+CW7				  CODE	    0593	 957
+CW8				  CODE	    059E	 963
+CW_NONE				  CODE	    05A9	 969
+CY				  BIT	      D7
+D1				  CODE	    06C3	1191
+D2				  CODE	    06C5	1193
+D3				  CODE	    06CC	1200
+DELAY				  CODE	    06C1	1189
+DELAY_BIG			  CODE	    06CA	1198
+DO_PLACE			  CODE	    0183	 242
+DPH				  DATA	      83
+DPL				  DATA	      82
+E				  NUMBER    00A2	   5
+EA				  BIT	      AF
+ES				  BIT	      AC
+ET0				  BIT	      A9
+ET1				  BIT	      AB
+EX0				  BIT	      A8
+EX1				  BIT	      AA
+EXTI0				  CODE	    0003
+EXTI1				  CODE	    0013
+F0				  BIT	      D5
+FBX_RET				  CODE	    024F	 389
+FF_O_INC			  CODE	    0272	 426
+FF_O_LOOP			  CODE	    0253	 402
+FF_O_LT2			  CODE	    026A	 419
+FF_O_NEXT			  CODE	    026C	 421
+FF_X_INC			  CODE	    0297	 459
+FF_X_LOOP			  CODE	    0278	 437
+FF_X_LT2			  CODE	    028F	 452
+FF_X_NEXT			  CODE	    0291	 454
+FIND_BLOCK_X			  CODE	    0224	 370
+FIND_FORK_O			  CODE	    0250	 399
+FIND_FORK_X			  CODE	    0275	 434
+FIND_WIN_O			  CODE	    01F8	 345
+FWO_RET				  CODE	    0223	 364
+GAME_LOOP			  CODE	    0066	  84
+GAME_OVER			  CODE	    00DC	 158
+GO_CHK_O			  CODE	    00FF	 175
+GO_DRAW				  CODE	    010B	 181
+GO_RST				  CODE	    0111	 185
+HANDLE_KEY			  CODE	    0132	 205
+HK2				  CODE	    013B	 210
+HK3				  CODE	    0143	 213
+HK4				  CODE	    014B	 216
+
+ASEM-51 V1.3                                        Copyright (c) 2002 by W.W. Heinz                                         PAGE 27
+
+
+
+SYMBOL				  TYPE     VALUE	LINE
+------------------------------------------------------------
+HK5				  CODE	    0153	 219
+HK6				  CODE	    015B	 222
+HK7				  CODE	    0163	 225
+HK8				  CODE	    016B	 228
+HK9				  CODE	    0173	 231
+HK_BAD				  CODE	    017B	 234
+HUMAN_TURN			  CODE	    009A	 117
+IE				  DATA	      A8
+IE0				  BIT	      89
+IE1				  BIT	      8B
+INT0				  BIT	      B2
+INT1				  BIT	      B3
+IP				  DATA	      B8
+IT0				  BIT	      88
+IT1				  BIT	      8A
+KEY_0				  CODE	    069A	1154
+KEY_1				  CODE	    067C	1134
+KEY_2				  CODE	    0682	1138
+KEY_3				  CODE	    0688	1142
+KEY_4				  CODE	    0664	1118
+KEY_5				  CODE	    066A	1122
+KEY_6				  CODE	    0670	1126
+KEY_7				  CODE	    064C	1102
+KEY_8				  CODE	    0652	1106
+KEY_9				  CODE	    0658	1110
+KEY_ADD				  CODE	    06A6	1162
+KEY_C				  CODE	    0694	1150
+KEY_DIV				  CODE	    065E	1114
+KEY_EQ				  CODE	    06A0	1158
+KEY_MUL				  CODE	    0676	1130
+KEY_SCAN			  CODE	    0605	1062
+KEY_SUB				  CODE	    068E	1146
+LCDPORT				  NUMBER    00B0	   6
+LCD_CMD				  CODE	    05DB	1002
+LCD_DATA			  CODE	    05EA	1011
+LCD_INIT			  CODE	    05C1	 989
+LCD_LINE1			  NUMBER    0080	   8
+LCD_LINE2			  NUMBER    00C0	   9
+LCD_LINE3			  NUMBER    0094	  10
+LCD_LINE4			  NUMBER    00D4	  11
+LCD_PRINT			  CODE	    05F9	1020
+LP1				  CODE	    05F9	1021
+LP2				  CODE	    0604	1028
+MAIN_MENU			  CODE	    000F	  36
+MODEF				  NUMBER    003A	  24
+MSG1				  CODE	    06E7	1209
+MSG2				  CODE	    06FC	1210
+MSG_BLANK			  CODE	    07B9	1219
+MSG_DRAW			  CODE	    078F	1217
+MSG_GOVER			  CODE	    0750	1214
+MSG_HINT			  CODE	    0726	1212
+MSG_INV				  CODE	    073B	1213
+MSG_OWIN			  CODE	    077A	1216
+MSG_RST				  CODE	    07A4	1218
+MSG_SEL				  CODE	    0711	1211
+MSG_TITLE			  CODE	    06D2	1208
+
+ASEM-51 V1.3                                        Copyright (c) 2002 by W.W. Heinz                                         PAGE 28
+
+
+
+SYMBOL				  TYPE     VALUE	LINE
+------------------------------------------------------------
+MSG_XWIN			  CODE	    0765	1215
+NOT_RESTART			  CODE	    00A5	 125
+OV				  BIT	      D2
+P				  BIT	      D0
+P0				  DATA	      80
+P1				  DATA	      90
+P2				  DATA	      A0
+P3				  DATA	      B0
+PCON				  DATA	      87
+PS				  BIT	      BC
+PSW				  DATA	      D0
+PT0				  BIT	      B9
+PT1				  BIT	      BB
+PX0				  BIT	      B8
+PX1				  BIT	      BA
+RB8				  BIT	      9A
+RB_LINE2			  CODE	    049C	 820
+RB_O1				  CODE	    0497	 816
+RD				  BIT	      B7
+REN				  BIT	      9C
+RENDER_BOARD			  CODE	    0427	 769
+RESET				  CODE	    0000
+RI				  BIT	      98
+RS				  NUMBER    00A0	   4
+RS0				  BIT	      D3
+RS1				  BIT	      D4
+RXD				  BIT	      B0
+SBUF				  DATA	      99
+SCON				  DATA	      98
+SET_X				  CODE	    00CD	 146
+SHOW_END_BOARD			  CODE	    00D6	 151
+SHOW_INVALID			  CODE	    05AC	 976
+SINT				  CODE	    0023
+SM0				  BIT	      9F
+SM1				  BIT	      9E
+SM2				  BIT	      9D
+SP				  DATA	      81
+START				  CODE	    0003	  30
+START_GAME			  CODE	    005D	  79
+T0				  BIT	      B4
+T1				  BIT	      B5
+TB8				  BIT	      9B
+TCON				  DATA	      88
+TF0				  BIT	      8D
+TF1				  BIT	      8F
+TH0				  DATA	      8C
+TH1				  DATA	      8D
+TI				  BIT	      99
+TIMER0				  CODE	    000B
+TIMER1				  CODE	    001B
+TL0				  DATA	      8A
+TL1				  DATA	      8B
+TMOD				  DATA	      89
+TOGGLE_PLAYER			  CODE	    00BF	 139
+TR0				  BIT	      8C
+TR1				  BIT	      8E
+
+ASEM-51 V1.3                                        Copyright (c) 2002 by W.W. Heinz                                         PAGE 29
+
+
+
+SYMBOL				  TYPE     VALUE	LINE
+------------------------------------------------------------
+TRY_COL1			  CODE	    03B6	 670
+TRY_COL2			  CODE	    03BE	 675
+TRY_COL3			  CODE	    03C6	 680
+TRY_DIA1			  CODE	    03CE	 685
+TRY_DIA2			  CODE	    03D6	 690
+TRY_PLACE			  CODE	    017C	 236
+TRY_ROW1			  CODE	    039E	 655
+TRY_ROW2			  CODE	    03A6	 660
+TRY_ROW3			  CODE	    03AE	 665
+TXD				  BIT	      B1
+WAIT_KEY			  CODE	    009A	 118
+WAIT_MODE			  CODE	    0046	  63
+WAIT_RELEASE			  CODE	    06AC	1172
+WAIT_RST			  CODE	    0127	 196
+WINNER				  NUMBER    003B	  25
+WR				  BIT	      B6
+WR1				  CODE	    06AE	1174
